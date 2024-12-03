@@ -5,7 +5,7 @@ createApp({
         return {
             searchQuery: '',
             movies: [],
-            proxyUrl: 'http://localhost:3000' // Update this to match your proxy server URL
+            proxyUrl: 'http://localhost:3001' // Updated port to 3001
         }
     },
     methods: {
