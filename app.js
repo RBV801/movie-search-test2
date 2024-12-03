@@ -39,6 +39,8 @@ createApp({
                         const nextPageData = await nextPageResponse.json()
                         this.movies.push(...nextPageData.Search)
                     }
+                    
+                    this.movies.sort((a, b) => b.popularity - a.popularity)
                 }
             } catch (error) {
                 console.error('Error fetching movies:', error)
