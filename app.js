@@ -5,7 +5,7 @@ createApp({
         return {
             searchQuery: '',
             movies: [],
-            apiKey: 'your_omdb_api_key' // To be replaced with proxy server call
+            proxyUrl: 'http://localhost:3000' // Update this to match your proxy server URL
         }
     },
     methods: {
@@ -13,8 +13,7 @@ createApp({
             if (!this.searchQuery) return
             
             try {
-                // This will be updated to use proxy server
-                const response = await fetch(`http://www.omdbapi.com/?s=${this.searchQuery}&apikey=${this.apiKey}`)
+                const response = await fetch(`${this.proxyUrl}/api/search?query=${encodeURIComponent(this.searchQuery)}`)
                 const data = await response.json()
                 
                 if (data.Search) {
