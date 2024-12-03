@@ -10,17 +10,58 @@
 <div id="app" v-cloak>
     <div class="search-container">
         <h1>Movie Search</h1>
-        <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title..." class="search-input">
-        <button @click="searchMovies" class="search-button">Search</button>
+        <div class="search-box">
+            <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title or keywords..." class="search-input">
+            <button @click="searchMovies" class="search-button" :disabled="isLoading">
+                {{ isLoading ? 'Searching...' : 'Search' }}
+            </button>
+        </div>
+        
+        <div v-if="searchHistory.length" class="history-container">
+            <h3>Search History</h3>
+            <div class="history-list">
+                <button 
+                    v-for="query in searchHistory" 
+                    @click="searchFromHistory(query)"
+                    class="history-item"
+                >
+                    {{ query }}
+                </button>
+                <button @click="clearHistory" class="clear-history">Clear History</button>
+            </div>
+        </div>
     </div>
     
-    <div class="results-container" v-if="movies.length">
+    <div v-if="isLoading" class="loading">
+        Searching for movies...
+    </div>
+
+    <div v-else-if="error" class="error-message">
+        {{ error }}
+    </div>
+    
+    <div class="results-container" v-else-if="movies.length">
         <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
             <img :src="movie.Poster" :alt="movie.Title" class="movie-poster">
             <div class="movie-info">
                 <h2>{{ movie.Title }}</h2>
+                <div v-if="movie.rating" class="rating">
+                    Rating: {{ movie.rating.toFixed(1) }} / 10
+                </div>
                 <p>Year: {{ movie.Year }}</p>
-                <p>Type: {{ movie.Type }}</p>
+                <p v-if="movie.genres && movie.genres.length">Genres: {{ movie.genres.join(', ') }}</p>
+                <div v-if="movie.overview" class="overview">
+                    <h3>Overview</h3>
+                    <p>{{ movie.overview }}</p>
+                </div>
+                <div v-if="movie.keywords && movie.keywords.length" class="keywords">
+                    <h3>Keywords</h3>
+                    <div class="keyword-tags">
+                        <span v-for="keyword in movie.keywords" :key="keyword" class="keyword-tag">
+                            {{ keyword }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

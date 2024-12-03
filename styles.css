@@ -15,9 +15,13 @@ body {
     margin-bottom: 30px;
 }
 
+.search-box {
+    margin-bottom: 20px;
+}
+
 .search-input {
     padding: 10px;
-    width: 300px;
+    width: 400px;
     margin-right: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -32,9 +36,60 @@ body {
     cursor: pointer;
 }
 
+.search-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: #666;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.history-container {
+    margin: 20px 0;
+}
+
+.history-list {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.history-item {
+    padding: 5px 10px;
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clear-history {
+    padding: 5px 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 .results-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
 
@@ -47,7 +102,7 @@ body {
 
 .movie-poster {
     width: 100%;
-    height: 300px;
+    height: 400px;
     object-fit: cover;
 }
 
@@ -57,10 +112,48 @@ body {
 
 .movie-info h2 {
     margin: 0 0 10px 0;
-    font-size: 1.2em;
+    font-size: 1.4em;
+    color: #2c3e50;
+}
+
+.movie-info h3 {
+    margin: 15px 0 10px 0;
+    font-size: 1.1em;
+    color: #34495e;
 }
 
 .movie-info p {
     margin: 5px 0;
     color: #666;
+}
+
+.rating {
+    font-size: 1.1em;
+    color: #f39c12;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.overview {
+    margin: 15px 0;
+}
+
+.overview p {
+    line-height: 1.5;
+    color: #444;
+}
+
+.keyword-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.keyword-tag {
+    background-color: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #495057;
 }
