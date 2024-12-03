@@ -11,7 +11,7 @@
     <div class="search-container">
         <h1>Movie Search</h1>
         <div class="search-box">
-            <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title or description..." class="search-input">
+            <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title or keywords..." class="search-input">
             <button @click="searchMovies" class="search-button" :disabled="isLoading">
                 {{ isLoading ? 'Searching...' : 'Search' }}
             </button>
@@ -45,8 +45,23 @@
             <img :src="movie.Poster" :alt="movie.Title" class="movie-poster">
             <div class="movie-info">
                 <h2>{{ movie.Title }}</h2>
+                <div v-if="movie.rating" class="rating">
+                    Rating: {{ movie.rating.toFixed(1) }} / 10
+                </div>
                 <p>Year: {{ movie.Year }}</p>
-                <p>Type: {{ movie.Type }}</p>
+                <p v-if="movie.genres && movie.genres.length">Genres: {{ movie.genres.join(', ') }}</p>
+                <div v-if="movie.overview" class="overview">
+                    <h3>Overview</h3>
+                    <p>{{ movie.overview }}</p>
+                </div>
+                <div v-if="movie.keywords && movie.keywords.length" class="keywords">
+                    <h3>Keywords</h3>
+                    <div class="keyword-tags">
+                        <span v-for="keyword in movie.keywords" :key="keyword" class="keyword-tag">
+                            {{ keyword }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
