@@ -2,19 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Search Tool</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Movie Search Agent</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+<div id="app" v-cloak>
+    <div class="search-container">
         <h1>Movie Search</h1>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search for movies...">
-            <button onclick="searchMovies()">Search</button>
-        </div>
-        <div id="results" class="results-container"></div>
+        <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title..." class="search-input">
+        <button @click="searchMovies" class="search-button">Search</button>
     </div>
-    <script src="script.js"></script>
+    
+    <div class="results-container" v-if="movies.length">
+        <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
+            <img :src="movie.Poster" :alt="movie.Title" class="movie-poster">
+            <div class="movie-info">
+                <h2>{{ movie.Title }}</h2>
+                <p>Year: {{ movie.Year }}</p>
+                <p>Type: {{ movie.Type }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
