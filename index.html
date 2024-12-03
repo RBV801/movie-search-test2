@@ -11,7 +11,7 @@
     <div class="search-container">
         <h1>Movie Search</h1>
         <div class="search-box">
-            <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title..." class="search-input">
+            <input type="text" v-model="searchQuery" @keyup.enter="searchMovies" placeholder="Enter movie title or description..." class="search-input">
             <button @click="searchMovies" class="search-button" :disabled="isLoading">
                 {{ isLoading ? 'Searching...' : 'Search' }}
             </button>
@@ -34,6 +34,10 @@
     
     <div v-if="isLoading" class="loading">
         Searching for movies...
+    </div>
+
+    <div v-else-if="error" class="error-message">
+        {{ error }}
     </div>
     
     <div class="results-container" v-else-if="movies.length">
