@@ -79,7 +79,7 @@ function App() {
       setLoading(false);
     }
   }
-},
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();
