@@ -153,7 +153,11 @@ function App() {
                 aria-label="Voice search"
                 title="Click to search with your voice"
               >
-                {isListening ? '🔴 Recording...' : '🎤'}
+                {isListening ? (
+                  <span role="img" aria-label="Recording">🔴 Recording...</span>
+                ) : (
+                  <span role="img" aria-label="Microphone">🎤</span>
+                )}
               </button>
               <button type="submit" className="search-button">
                 Search
