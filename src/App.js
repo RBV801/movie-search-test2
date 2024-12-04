@@ -6,8 +6,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LoadingState from './components/LoadingState';
 import SearchFeedback from './components/SearchFeedback';
 import SearchHistory from './components/SearchHistory';
+import FeedbackWidget from './components/FeedbackWidget';
 import { getCachedData, setCachedData } from './utils/caching';
 import { getSearchHistory, addToSearchHistory, clearSearchHistory } from './utils/searchHistory';
+import { saveFeedback } from './utils/feedbackStorage';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,11 +22,23 @@ function App() {
   const [isListening, setIsListening] = useState(false);
   const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
 
   // Load search history on component mount
   useEffect(() => {
     setSearchHistory(getSearchHistory());
   }, []);
+
+  // Show feedback widget after search completes
+  useEffect(() => {
+    if (!loading && results.length > 0) {
+      const timer = setTimeout(() => {
+        setShowFeedbackWidget(true);
+      }, 2000); // Show feedback widget 2 seconds after results load
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading, results.length]);
 
   // Initialize speech recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,6 +80,7 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setShowFeedbackWidget(false);
 
     if (page === 1) {
       setResults([]); // Clear previous results when starting a new search
@@ -143,6 +158,11 @@ function App() {
   const handleClearHistory = () => {
     const clearedHistory = clearSearchHistory();
     setSearchHistory(clearedHistory);
+  };
+
+  const handleFeedbackSubmit = (feedback) => {
+    saveFeedback(feedback);
+    setShowFeedbackWidget(false);
   };
 
   const loadMore = () => {
@@ -287,6 +307,13 @@ function App() {
             <div className="submit-feedback">
               Search submitted!
             </div>
+          )}
+
+          {showFeedbackWidget && !loading && results.length > 0 && (
+            <FeedbackWidget
+              onSubmit={handleFeedbackSubmit}
+              searchQuery={searchQuery}
+            />
           )}
         </main>
       </div>
