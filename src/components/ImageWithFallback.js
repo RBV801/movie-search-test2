@@ -1,117 +1,66 @@
-import React, { useState, useEffect } from 'react';
-
-const CyberpunkPlaceholder = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 300 450"
-    className="w-full h-full"
-  >
-    {/* Background Grid */}
-    <defs>
-      <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-        <path
-          d="M 30 0 L 0 0 0 30"
-          fill="none"
-          stroke="#ffffff10"
-          strokeWidth="1"
-        />
-      </pattern>
-      
-      {/* Glow Filter */}
-      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
-        <feColorMatrix
-          in="blur"
-          mode="matrix"
-          values="
-            1 0 0 0 0
-            0 1 0 0 0
-            0 0 1 0 0
-            0 0 0 18 -7"
-          result="glow"
-        />
-        <feMerge>
-          <feMergeNode in="glow" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-
-    {/* Background */}
-    <rect width="100%" height="100%" fill="#121212" />
-    <rect width="100%" height="100%" fill="url(#grid)" />
-
-    {/* Skull Design */}
-    <g transform="translate(150, 225)" filter="url(#glow)">
-      <path
-        d="M-50 -60 C-50 -90, 50 -90, 50 -60 L50 20 C50 50, -50 50, -50 20 Z"
-        fill="none"
-        stroke="#00fff2"
-        strokeWidth="2"
-      />
-      {/* Eyes */}
-      <path
-        d="M-30 -20 L-10 -20 L-10 0 L-30 0 Z M10 -20 L30 -20 L30 0 L10 0 Z"
-        fill="#ff00ea"
-      />
-      {/* Teeth */}
-      <path
-        d="M-30 20 L30 20 L20 40 L-20 40 Z"
-        fill="none"
-        stroke="#00fff2"
-        strokeWidth="2"
-      />
-    </g>
-
-    {/* Text */}
-    <text
-      x="150"
-      y="350"
-      fontFamily="monospace"
-      fontSize="24"
-      fill="#00fff2"
-      textAnchor="middle"
-      filter="url(#glow)"
-    >
-      NO_SIGNAL//
-    </text>
-  </svg>
-);
+import React, { useState } from 'react';
 
 const ImageWithFallback = ({ src, alt, className, ...props }) => {
   const [error, setError] = useState(false);
-  const [hasValidSource, setHasValidSource] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setError(false);
-    setHasValidSource(Boolean(src && src !== 'null' && src !== 'undefined'));
-  }, [src]);
+  const handleError = () => {
+    console.warn(`Image failed to load: ${src}`);
+    setError(true);
+    setLoading(false);
+  };
 
-  const shouldShowPlaceholder = error || !hasValidSource;
+  const handleLoad = () => {
+    setLoading(false);
+  };
 
-  if (shouldShowPlaceholder) {
+  if (error) {
     return (
-      <div 
-        className={`${className} relative w-full h-full`}
-        style={{ 
-          backgroundColor: '#121212',
-          aspectRatio: '2/3',
-          overflow: 'hidden'
-        }}
-      >
-        <CyberpunkPlaceholder />
+      <div className={`${className} placeholder-image`} {...props}>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="placeholder-icon"
+        >
+          <rect width="24" height="24" fill="#1a1a1a" />
+          <path
+            d="M12 8.5V12M12 15.5H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+            stroke="#666"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <text
+            x="50%"
+            y="75%"
+            textAnchor="middle"
+            fill="#666"
+            fontSize="0.2em"
+            fontFamily="system-ui"
+          >
+            {alt || 'Image not available'}
+          </text>
+        </svg>
       </div>
     );
   }
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={`${className} w-full h-full object-cover`}
-      onError={() => setError(true)}
-      {...props}
-    />
+    <div className={`image-container ${className}`}>
+      {loading && (
+        <div className="loading-placeholder">
+          <div className="loading-spinner"></div>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onError={handleError}
+        onLoad={handleLoad}
+        className={`${className} ${loading ? 'loading' : ''}`}
+        {...props}
+      />
+    </div>
   );
 };
 
