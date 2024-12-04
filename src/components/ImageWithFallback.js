@@ -8,7 +8,9 @@ const ImageWithFallback = ({ src, alt, className, ...props }) => {
       {error ? (
         <div className="absolute inset-0 flex items-center justify-center text-center p-4">
           <div>
-            <div className="text-cyan-400 text-lg mb-2">🎬</div>
+            <span role="img" aria-label="Movie Camera" className="text-cyan-400 text-lg mb-2">
+              🎬
+            </span>
             <div className="text-cyan-400 text-sm">No Poster Available</div>
             <div className="text-cyan-400 text-xs mt-2">{alt}</div>
           </div>
