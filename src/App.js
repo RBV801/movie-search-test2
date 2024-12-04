@@ -52,8 +52,6 @@ function App() {
     setLoading(true);
     setError(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${page}`
@@ -63,8 +61,6 @@ function App() {
       if (data.error) {
         throw new Error(data.error);
       }
-    }
-  
 
       if (page === 1) {
         setResults(data.Search || []);
@@ -80,8 +76,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }
-  },
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
