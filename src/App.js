@@ -7,6 +7,8 @@ import LoadingState from './components/LoadingState';
 import SearchFeedback from './components/SearchFeedback';
 import SearchHistory from './components/SearchHistory';
 import FeedbackWidget from './components/FeedbackWidget';
+import AISearchExplanation from './components/AISearchExplanation';
+import { analyzeSearchIntent } from './utils/searchAnalysis';
 import { getCachedData, setCachedData } from './utils/caching';
 import { getSearchHistory, addToSearchHistory, clearSearchHistory } from './utils/searchHistory';
 import { saveFeedback } from './utils/feedbackStorage';
@@ -23,6 +25,10 @@ function App() {
   const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
   const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState({
+    matchFactors: [],
+    aiUsage: { creditsUsed: 0, operations: [] }
+  });
 
   // Load search history on component mount
   useEffect(() => {
@@ -85,6 +91,10 @@ function App() {
     if (page === 1) {
       setResults([]); // Clear previous results when starting a new search
       window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top for new searches
+      
+      // Perform AI analysis on new searches
+      const analysis = analyzeSearchIntent(query);
+      setAiAnalysis(analysis);
     }
 
     // Check cache first
@@ -243,6 +253,15 @@ function App() {
             currentPage={currentPage}
             resultsPerPage={10}
           />}
+
+          {!loading && totalResults > 0 && (
+            <AISearchExplanation
+              searchTerm={searchQuery}
+              resultCount={totalResults}
+              matchFactors={aiAnalysis.matchFactors}
+              aiUsage={aiAnalysis.aiUsage}
+            />
+          )}
 
           <div className="results-grid">
             {results.map((movie, index) => (
