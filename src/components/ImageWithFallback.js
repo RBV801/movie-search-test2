@@ -5,9 +5,7 @@ const ImageWithFallback = ({ src, alt, className, ...props }) => {
   const [hasValidSource, setHasValidSource] = useState(true);
 
   useEffect(() => {
-    // Reset error state when src changes
     setError(false);
-    // Check if we have a valid source
     setHasValidSource(Boolean(src && src !== 'null' && src !== 'undefined'));
   }, [src]);
 
@@ -16,21 +14,26 @@ const ImageWithFallback = ({ src, alt, className, ...props }) => {
   if (shouldShowPlaceholder) {
     return (
       <div 
-        className={`${className} relative`}
+        className={`${className} relative w-full h-full`}
         style={{ 
           backgroundColor: '#1a1a1a',
           border: '2px dashed #4a90e2',
-          minHeight: '300px'
+          aspectRatio: '2/3',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
       >
-        <div className="absolute inset-0 flex items-center justify-center text-center p-4">
-          <div>
-            <span role="img" aria-label="Movie Camera" className="text-cyan-400 text-2xl block mb-2">
-              🎬
-            </span>
-            <div className="text-cyan-400 text-sm font-medium">No Poster Available</div>
-            <div className="text-cyan-400 text-xs mt-2 max-w-[200px] overflow-hidden text-ellipsis">{alt}</div>
-          </div>
+        <div className="flex flex-col items-center justify-center text-center p-4">
+          <span role="img" aria-label="Movie Camera" className="text-cyan-400 text-2xl mb-3">
+            🎬
+          </span>
+          <div className="text-cyan-400 text-sm font-medium">No Poster Available</div>
+          {alt && alt !== 'Movie Poster' && (
+            <div className="text-cyan-400 text-xs mt-2 px-2 max-w-[80%] overflow-hidden text-ellipsis">
+              {alt}
+            </div>
+          )}
         </div>
       </div>
     );
