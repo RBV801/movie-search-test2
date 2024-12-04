@@ -1,1 +1,1 @@
-/* content_script.js is not needed in this project, so removing it */
+/* content_script.js dummy content */
