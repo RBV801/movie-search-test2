@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import './App.css';
+ feature/search-improvements
 import ImageWithFallback from './components/ImageWithFallback';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getCachedData, setCachedData } from './utils/caching';
+ main
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,12 +51,15 @@ function App() {
     setIsListening(!isListening);
   };
 
+ feature/search-improvements
   const handleSearch = async (query = searchQuery, page = 1, retryCount = 0) => {
+main
     if (!query.trim()) return;
 
     setLoading(true);
     setError(null);
 
+feature/search-improvements
     // Check cache first
     const cacheKey = `${query}-${page}`;
     const cachedData = getCachedData(cacheKey);
@@ -66,7 +71,7 @@ function App() {
       setLoading(false);
       return;
     }
-
+ main
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${page}`
@@ -77,9 +82,10 @@ function App() {
         throw new Error(data.error);
       }
 
+feature/search-improvements
       // Cache the successful response
       setCachedData(cacheKey, data);
-
+ main
       if (page === 1) {
         setResults(data.Search || []);
       } else {
@@ -90,6 +96,7 @@ function App() {
       setCurrentPage(data.currentPage);
       setHasMore(data.hasMore);
     } catch (err) {
+feature/search-improvements
       console.error('Search error:', err);
       if (retryCount < 3) {
         // Retry with exponential backoff
@@ -97,6 +104,8 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, delay));
         return handleSearch(query, page, retryCount + 1);
       }
+
+main
       setError(err.message);
     } finally {
       setLoading(false);
@@ -133,6 +142,7 @@ function App() {
   };
 
   return (
+feature/search-improvements
     <ErrorBoundary>
       <div className="App">
         <header className="App-header">
@@ -196,6 +206,7 @@ function App() {
                     <div className="recommendation-score">
                       <span className="score-label">Recommendation Score:</span>
                       <span className="score-value">{movie.recommendationScore}</span>
+ main
                     </div>
                   )}
                   {movie.tmdbData && (
@@ -230,6 +241,7 @@ function App() {
               </div>
             ))}
           </div>
+feature/search-improvements
 
           {hasMore && !loading && results.length > 0 && (
             <button onClick={loadMore} className="load-more-button">
@@ -245,6 +257,7 @@ function App() {
         </main>
       </div>
     </ErrorBoundary>
+ main
   );
 }
 
