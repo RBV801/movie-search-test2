@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -158,8 +158,11 @@ function App() {
                 <img 
                   src={movie.tmdbData?.poster_path 
                     ? `https://image.tmdb.org/t/p/w500${movie.tmdbData.poster_path}`
-                    : movie.poster || 'placeholder-image.jpg'} 
+                    : (movie.poster || '/placeholder-image.jpg')} 
                   alt={movie.title}
+                  onError={(e) => {
+                    e.target.src = '/placeholder-image.jpg';
+                  }}
                 />
               </div>
               <div className="movie-info">
