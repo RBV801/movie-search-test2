@@ -33,23 +33,23 @@ const FeedbackWidget = ({ onSubmit, searchQuery }) => {
         <button
           onClick={() => handleFeedback('poor')}
           className={`feedback-button poor ${selectedRating === 'poor' ? 'selected' : ''}`}
-          aria-label="Poor results"
+          aria-label="Rate results as poor"
         >
-          😕
+          <span role="img" aria-label="Disappointed face">😕</span>
         </button>
         <button
           onClick={() => handleFeedback('okay')}
           className={`feedback-button okay ${selectedRating === 'okay' ? 'selected' : ''}`}
-          aria-label="Okay results"
+          aria-label="Rate results as okay"
         >
-          😐
+          <span role="img" aria-label="Neutral face">😐</span>
         </button>
         <button
           onClick={() => handleFeedback('good')}
           className={`feedback-button good ${selectedRating === 'good' ? 'selected' : ''}`}
-          aria-label="Good results"
+          aria-label="Rate results as good"
         >
-          😊
+          <span role="img" aria-label="Smiling face">😊</span>
         </button>
       </div>
     </div>
