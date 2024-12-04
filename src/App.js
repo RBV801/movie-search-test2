@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import './styles/components.css';
 import ImageWithFallback from './components/ImageWithFallback';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingState from './components/LoadingState';
 import SearchFeedback from './components/SearchFeedback';
+import SearchHistory from './components/SearchHistory';
 import { getCachedData, setCachedData } from './utils/caching';
+import { getSearchHistory, addToSearchHistory, clearSearchHistory } from './utils/searchHistory';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +19,12 @@ function App() {
   const [hasMore, setHasMore] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
+  const [searchHistory, setSearchHistory] = useState([]);
+
+  // Load search history on component mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
 
   // Initialize speech recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -72,6 +80,10 @@ function App() {
       setTotalResults(cachedData.totalResults);
       setCurrentPage(cachedData.currentPage);
       setHasMore(cachedData.hasMore);
+      if (page === 1) {
+        const newHistory = addToSearchHistory(query, cachedData.totalResults);
+        setSearchHistory(newHistory);
+      }
       setLoading(false);
       return;
     }
@@ -91,6 +103,8 @@ function App() {
 
       if (page === 1) {
         setResults(data.Search || []);
+        const newHistory = addToSearchHistory(query, data.totalResults);
+        setSearchHistory(newHistory);
       } else {
         setResults(prev => [...prev, ...(data.Search || [])]);
       }
@@ -119,6 +133,16 @@ function App() {
     setShowSubmitFeedback(true);
     setTimeout(() => setShowSubmitFeedback(false), 2000);
     handleSearch(searchQuery, 1);
+  };
+
+  const handleHistoryItemClick = (historyItem) => {
+    setSearchQuery(historyItem.query);
+    handleSearch(historyItem.query, 1);
+  };
+
+  const handleClearHistory = () => {
+    const clearedHistory = clearSearchHistory();
+    setSearchHistory(clearedHistory);
   };
 
   const loadMore = () => {
@@ -181,6 +205,14 @@ function App() {
 
         <main className="App-main">
           {error && <div className="error-message">{error}</div>}
+
+          {!loading && searchHistory.length > 0 && (
+            <SearchHistory
+              history={searchHistory}
+              onHistoryItemClick={handleHistoryItemClick}
+              onClearHistory={handleClearHistory}
+            />
+          )}
 
           {!loading && <SearchFeedback 
             totalResults={totalResults}
