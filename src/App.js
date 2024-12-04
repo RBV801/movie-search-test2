@@ -1,16 +1,140 @@
-feature/search-improvements
-import React, { useState } from 'react'
-main
+import React, { useState } from 'react';
 import './App.css';
-import MovieSearch from './MovieSearch';
 
 function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  // Initialize speech recognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+  if (recognition) {
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      handleSearch(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+  }
+
+  const toggleVoiceSearch = () => {
+    if (!recognition) {
+      alert('Speech recognition is not supported in your browser');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+    setIsListening(!isListening);
+  };
+
+  const handleSearch = async (query = searchQuery, page = 1) => {
+    if (!query.trim()) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${page}`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (page === 1) {
+        setResults(data.Search || []);
+      } else {
+        setResults(prev => [...prev, ...(data.Search || [])]);
+      }
+
+      setTotalResults(data.totalResults);
+      setCurrentPage(data.currentPage);
+      setHasMore(data.hasMore);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSearch(searchQuery, 1);
+  };
+
+  const loadMore = () => {
+    handleSearch(searchQuery, currentPage + 1);
+  };
+
+  const renderStreamingProviders = (providers) => {
+    if (!providers) return null;
+
+    return (
+      <div className="streaming-providers">
+        <h4>Available on:</h4>
+        {providers.flatrate?.map(provider => (
+          <span key={provider.provider_id} className="provider-badge">
+            {provider.provider_name}
+          </span>
+        ))}
+        {providers.rent?.map(provider => (
+          <span key={provider.provider_id} className="provider-badge rent">
+            Rent on {provider.provider_name}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>Movie Search</h1>
+        <form onSubmit={handleSubmit} className="search-form">
+          <div className="search-container">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for movies..."
+              className="search-input"
+            />
+            <button 
+              type="button" 
+              onClick={toggleVoiceSearch} 
+              className={`voice-button ${isListening ? 'recording' : ''}`}
+              aria-label="Voice search"
+              title="Click to search with your voice"
+            >
+              {isListening ? '🔴 Recording...' : '🎤'}
+            </button>
+            <button type="submit" className="search-button">
+              Search
+            </button>
+          </div>
+        </form>
       </header>
-feature/search-improvements
 
       <main className="App-main">
         {error && <div className="error-message">{error}</div>}
@@ -31,15 +155,15 @@ feature/search-improvements
           {results.map((movie, index) => (
             <div key={`${movie.id || movie.imdbID}-${index}`} className="movie-card">
               <div className="movie-poster">
-                <img 
-                  src={movie.tmdbData?.poster_path 
-                    ? `https://image.tmdb.org/t/p/w500${movie.tmdbData.poster_path}`
-                    : (movie.poster || '/placeholder-image.jpg')} 
-                  alt={movie.title}
-                  onError={(e) => {
-                    e.target.src = '/placeholder-image.jpg';
-                  }}
-                />
+              <img 
+                src={movie.tmdbData?.poster_path 
+                  ? `https://image.tmdb.org/t/p/w500${movie.tmdbData.poster_path}`
+                  : (movie.poster || '/placeholder-image.jpg')} 
+                alt={movie.title}
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg';
+                }}
+              />
               </div>
               <div className="movie-info">
                 <h3>{movie.title}</h3>
@@ -95,7 +219,6 @@ feature/search-improvements
           </div>
         )}
       </main>
-main
     </div>
   );
 }
