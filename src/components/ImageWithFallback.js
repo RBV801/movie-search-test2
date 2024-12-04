@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
+import cyberpunkPlaceholder from '../assets/CyberpunkPlaceholder.svg';
 
-const ImageWithFallback = ({ src, alt, className, fallbackSrc = '/placeholder-image.jpg' }) => {
-  const [imgSrc, setImgSrc] = useState(src);
+const ImageWithFallback = ({ src, alt, className, ...props }) => {
   const [error, setError] = useState(false);
 
   const handleError = () => {
     if (!error) {
-      setImgSrc(fallbackSrc);
       setError(true);
     }
   };
 
   return (
     <img
-      src={imgSrc}
+      src={error ? cyberpunkPlaceholder : src}
       alt={alt}
-      className={className}
       onError={handleError}
-      loading="lazy"
+      className={`transition-opacity duration-300 ${className || ''}`}
+      {...props}
     />
   );
 };
