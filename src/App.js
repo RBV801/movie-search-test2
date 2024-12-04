@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './App.css';
+import './styles/components.css';
 import ImageWithFallback from './components/ImageWithFallback';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoadingState from './components/LoadingState';
+import SearchFeedback from './components/SearchFeedback';
 import { getCachedData, setCachedData } from './utils/caching';
 
 function App() {
@@ -13,6 +16,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
 
   // Initialize speech recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -54,6 +58,11 @@ function App() {
 
     setLoading(true);
     setError(null);
+
+    if (page === 1) {
+      setResults([]); // Clear previous results when starting a new search
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top for new searches
+    }
 
     // Check cache first
     const cacheKey = `${query}-${page}`;
@@ -105,6 +114,10 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setShowSubmitFeedback(true);
+    setTimeout(() => setShowSubmitFeedback(false), 2000);
     handleSearch(searchQuery, 1);
   };
 
@@ -168,18 +181,11 @@ function App() {
 
         <main className="App-main">
           {error && <div className="error-message">{error}</div>}
-          
-          {totalResults > 0 && (
-            <div className="results-count">
-              Found {totalResults} results
-            </div>
-          )}
 
-          {results.length === 0 && !loading && !error && searchQuery && (
-            <div className="no-results">
-              No results found. Try adjusting your search terms.
-            </div>
-          )}
+          {!loading && <SearchFeedback 
+            totalResults={totalResults}
+            currentPage={currentPage}
+          />}
 
           <div className="results-grid">
             {results.map((movie, index) => (
@@ -237,15 +243,17 @@ function App() {
             ))}
           </div>
 
+          {loading && <LoadingState />}
+
           {hasMore && !loading && results.length > 0 && (
             <button onClick={loadMore} className="load-more-button">
               Load More Results
             </button>
           )}
 
-          {loading && (
-            <div className="loading-spinner">
-              Loading...
+          {showSubmitFeedback && (
+            <div className="submit-feedback">
+              Search submitted!
             </div>
           )}
         </main>
