@@ -1,4 +1,53 @@
-{
-  "encoding": "utf-8",
-  "content": "import React, { useState, useEffect } from 'react';\nimport ImageWithFallback from './ImageWithFallback';\n\nconst SearchResults = () => {\n  const [searchResults, setSearchResults] = useState([]);\n  const [totalResults, setTotalResults] = useState(0);\n  const [currentPage, setCurrentPage] = useState(1);\n\n  useEffect(() => {\n    const fetchSearchResults = async () => {\n      try {\n        const response = await fetch(`/api/search?q=judy garland`);\n        const data = await response.json();\n        setSearchResults(data.results);\n        setTotalResults(data.totalResults);\n      } catch (error) {\n        console.error('Error fetching search results:', error);\n      }\n    };\n\n    fetchSearchResults();\n  }, []);\n\n  const handleMoreResults = () => {\n    setCurrentPage(currentPage + 1);\n    // Fetch additional results\n  };\n\n  return (\n    <div>\n      <h2>Search Results</h2>\n      <div className=\"results-container\">\n        {searchResults.map((movie) => (\n          <div key={movie.id} className=\"movie-card\">\n            <ImageWithFallback\n              src={`/api/poster/${movie.id}`}\n              alt={`${movie.title} poster`}\n              className=\"movie-poster\"\n            />\n            <h3>{movie.title}</h3>\n            <p>Year: {movie.year}</p>\n            <p>Actors: {movie.actors.join(', ')}</p>\n          </div>\n        ))}\n      </div>\n      {totalResults > searchResults.length && (\n        <button onClick={handleMoreResults}>More Results</button>\n      )}\n    </div>\n  );\n};\n\nexport default SearchResults;"
-}
+import React, { useState, useEffect } from 'react';
+import ImageWithFallback from './ImageWithFallback';
+
+const SearchResults = () => {
+  const [searchResults, setSearchResults] = useState([]);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      try {
+        const response = await fetch(`/api/search?q=judy garland`);
+        const data = await response.json();
+        setSearchResults(data.results);
+        setTotalResults(data.totalResults);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      }
+    };
+
+    fetchSearchResults();
+  }, []);
+
+  const handleMoreResults = () => {
+    setCurrentPage(currentPage + 1);
+    // Fetch additional results
+  };
+
+  return (
+    <div>
+      <h2>Search Results</h2>
+      <div className="results-container">
+        {searchResults.map((movie) => (
+          <div key={movie.id} className="movie-card">
+            <ImageWithFallback
+              src={`/api/poster/${movie.id}`}
+              alt={`${movie.title} poster`}
+              className="movie-poster"
+            />
+            <h3>{movie.title}</h3>
+            <p>Year: {movie.year}</p>
+            <p>Actors: {movie.actors.join(', ')}</p>
+          </div>
+        ))}
+      </div>
+      {totalResults > searchResults.length && (
+        <button onClick={handleMoreResults}>More Results</button>
+      )}
+    </div>
+  );
+};
+
+export default SearchResults;
