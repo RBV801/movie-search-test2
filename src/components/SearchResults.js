@@ -5,15 +5,20 @@ const SearchResults = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
         const response = await fetch(`/api/search?q=judy garland`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch search results');
+        }
         const data = await response.json();
         setSearchResults(data.results);
         setTotalResults(data.totalResults);
       } catch (error) {
+        setError(error.message);
         console.error('Error fetching search results:', error);
       }
     };
@@ -29,6 +34,7 @@ const SearchResults = () => {
   return (
     <div>
       <h2>Search Results</h2>
+      {error && <div className="error">{error}</div>}
       <div className="results-container">
         {searchResults.map((movie) => (
           <div key={movie.id} className="movie-card">
