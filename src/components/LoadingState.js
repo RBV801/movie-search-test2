@@ -1,12 +1,11 @@
 import React from 'react';
+import { Loader } from 'lucide-react';
 
-const LoadingState = () => {
-  return (
-    <div className="flex justify-center items-center h-full">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-      <span className="ml-4 text-gray-900 font-medium">Searching...</span>
-    </div>
-  );
-};
+const LoadingState = () => (
+  <div className="flex items-center justify-center p-4">
+    <Loader className="animate-spin text-blue-500" size={24} />
+    <span className="ml-2">Loading results...</span>
+  </div>
+);
 
 export default LoadingState;

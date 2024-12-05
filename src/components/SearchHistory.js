@@ -1,23 +1,32 @@
 import React from 'react';
+import { Clock, X } from 'lucide-react';
 
-const SearchHistory = ({ history, onHistoryItemClick }) => {
-  if (!history?.length) return null;
+const SearchHistory = ({ history, onHistoryItemClick, onClear }) => {
+  if (!history.length) return null;
 
   return (
-    <div className="bg-gray-100 p-4 rounded">
-      <h3 className="text-lg font-semibold mb-2">Recent Searches</h3>
-      <ul>
+    <div className="bg-white rounded-lg shadow p-4 mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold">Recent Searches</h3>
+        {onClear && (
+          <button onClick={onClear} className="text-gray-500 hover:text-red-500">
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
         {history.map((item, index) => (
-          <li
+          <button
             key={index}
             onClick={() => onHistoryItemClick(item.query)}
-            className="cursor-pointer hover:bg-gray-200 p-2 rounded"
+            className="flex items-center gap-2 w-full p-2 hover:bg-gray-50 rounded text-left"
           >
-            <span className="font-medium">{item.query}</span>
-            <span className="text-sm text-gray-600 ml-2">({item.results} results)</span>
-          </li>
+            <Clock size={16} className="text-gray-400" />
+            <span>{item.query}</span>
+            <span className="text-gray-400 text-sm ml-auto">{item.totalResults} results</span>
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
