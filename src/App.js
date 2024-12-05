@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import './styles/components.css';
@@ -70,7 +69,7 @@ function App() {
         const newHistory = addToSearchHistory(query, data.totalResults);
         setSearchHistory(newHistory);
       } else {
-        newResults = [...results, ...(data.Search || [])];
+        newResults = [...results, ...(data.Search || [])];  
       }
 
       setResults(newResults);
