@@ -10,12 +10,12 @@ const SearchResults = () => {
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
-        const response = await fetch(`/api/search?q=judy garland`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/search?query=judy garland`);
         if (!response.ok) {
           throw new Error('Failed to fetch search results');
         }
         const data = await response.json();
-        setSearchResults(data.results);
+        setSearchResults(data.Search);
         setTotalResults(data.totalResults);
       } catch (error) {
         setError(error.message);
