@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import debounce from './utils/debounce';
 import { analyzeSearchIntent } from './utils/searchAnalysis';
@@ -48,7 +47,7 @@ function App() {
         const newHistory = addToSearchHistory(query, data.totalResults);
         setSearchHistory(newHistory);
       } else {
-        newResults = [...results, ...(data.Search || [])];
+        newResults = [...results, ...(data.Search || [])];  
       }
       setResults(newResults);
       setTotalResults(data.totalResults);
