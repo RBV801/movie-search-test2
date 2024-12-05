@@ -1,21 +1,22 @@
-const cache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-export const getCachedData = (key) => {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-  return null;
-};
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export const setCachedData = (key, data) => {
-  cache.set(key, {
+  const cacheItem = {
     data,
     timestamp: Date.now()
-  });
+  };
+  localStorage.setItem(`movie_search_${key}`, JSON.stringify(cacheItem));
 };
 
-export const clearCache = () => {
-  cache.clear();
+export const getCachedData = (key) => {
+  const cached = localStorage.getItem(`movie_search_${key}`);
+  if (!cached) return null;
+
+  const { data, timestamp } = JSON.parse(cached);
+  if (Date.now() - timestamp > CACHE_DURATION) {
+    localStorage.removeItem(`movie_search_${key}`);
+    return null;
+  }
+
+  return data;
 };
