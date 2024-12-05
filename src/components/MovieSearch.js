@@ -6,13 +6,8 @@ const MovieSearch = () => {
   const [recentSearches, setRecentSearches] = useState([]);
 
   const handleSearch = () => {
-    // Perform the search
     console.log(`Searching for: ${searchTerm}`);
-
-    // Add the search term to the recent searches
     setRecentSearches([...recentSearches, searchTerm]);
-
-    // Clear the search term
     setSearchTerm('');
   };
 
@@ -22,15 +17,13 @@ const MovieSearch = () => {
 
   return (
     <div>
-      <div>
-        <input
-          type="text"
-          placeholder="Search for movies..."
-          value={searchTerm}
-          onChange={handleInputChange}
-        />
-        <button onClick={handleSearch}>Search</button>
-      </div>
+      <input
+        type="text"
+        placeholder="Search for movies..."
+        value={searchTerm}
+        onChange={handleInputChange}
+      />
+      <button onClick={handleSearch}>Search</button>
       <div>
         <h3>Recent Searches</h3>
         <ul>
