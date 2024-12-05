@@ -1,34 +1,23 @@
 import React from 'react';
 
-const SearchHistory = ({ history, onHistoryItemClick, onClearHistory }) => {
-  if (!history || history.length === 0) return null;
+const SearchHistory = ({ history, onHistoryItemClick }) => {
+  if (!history?.length) return null;
 
   return (
-    <div className="search-history">
-      <div className="search-history-header">
-        <h3>Recent Searches</h3>
-        <button 
-          onClick={onClearHistory}
-          className="clear-history-button"
-          title="Clear search history"
-        >
-          Clear History
-        </button>
-      </div>
-      <div className="search-history-list">
+    <div className="bg-gray-100 p-4 rounded">
+      <h3 className="text-lg font-semibold mb-2">Recent Searches</h3>
+      <ul>
         {history.map((item, index) => (
-          <button
-            key={`${item.query}-${index}`}
-            className="history-item"
-            onClick={() => onHistoryItemClick(item)}
-            title={`Search again for: ${item.query}`}
+          <li
+            key={index}
+            onClick={() => onHistoryItemClick(item.query)}
+            className="cursor-pointer hover:bg-gray-200 p-2 rounded"
           >
-            <span className="history-query">{item.query}</span>
-            <span className="history-time">{new Date(item.timestamp).toLocaleTimeString()}</span>
-            <span className="history-results">{item.totalResults} results</span>
-          </button>
+            <span className="font-medium">{item.query}</span>
+            <span className="text-sm text-gray-600 ml-2">({item.results} results)</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };

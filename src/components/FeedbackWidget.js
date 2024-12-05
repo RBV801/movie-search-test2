@@ -1,57 +1,47 @@
 import React, { useState } from 'react';
 
-const FeedbackWidget = ({ onSubmit, searchQuery }) => {
-  const [showThankYou, setShowThankYou] = useState(false);
-  const [selectedRating, setSelectedRating] = useState(null);
+const FeedbackWidget = ({ onClose, onSubmit }) => {
+  const [rating, setRating] = useState(null);
+  const [comment, setComment] = useState('');
 
-  const handleFeedback = (rating) => {
-    setSelectedRating(rating);
-    onSubmit({
-      query: searchQuery,
-      rating,
-      timestamp: new Date().toISOString()
-    });
-    setShowThankYou(true);
-    setTimeout(() => {
-      setShowThankYou(false);
-      setSelectedRating(null);
-    }, 2000);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ rating, comment });
   };
 
-  if (showThankYou) {
-    return (
-      <div className="feedback-widget thank-you">
-        Thank you for your feedback!
-      </div>
-    );
-  }
-
   return (
-    <div className="feedback-widget">
-      <p>How relevant were these results?</p>
-      <div className="feedback-buttons">
-        <button
-          onClick={() => handleFeedback('poor')}
-          className={`feedback-button poor ${selectedRating === 'poor' ? 'selected' : ''}`}
-          aria-label="Rate results as poor"
-        >
-          <span role="img" aria-label="Disappointed face">😕</span>
-        </button>
-        <button
-          onClick={() => handleFeedback('okay')}
-          className={`feedback-button okay ${selectedRating === 'okay' ? 'selected' : ''}`}
-          aria-label="Rate results as okay"
-        >
-          <span role="img" aria-label="Neutral face">😐</span>
-        </button>
-        <button
-          onClick={() => handleFeedback('good')}
-          className={`feedback-button good ${selectedRating === 'good' ? 'selected' : ''}`}
-          aria-label="Rate results as good"
-        >
-          <span role="img" aria-label="Smiling face">😊</span>
-        </button>
+    <div className="fixed bottom-4 right-4 bg-white p-4 rounded shadow-lg">
+      <button
+        onClick={onClose}
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+      >
+        ✕
+      </button>
+      <h3 className="font-semibold mb-2">How was your search experience?</h3>
+      <div className="mb-2">
+        {[1, 2, 3, 4, 5].map((value) => (
+          <button
+            key={value}
+            onClick={() => setRating(value)}
+            className={`mr-1 p-1 ${rating === value ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+          >
+            {value}
+          </button>
+        ))}
       </div>
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Any additional feedback?"
+        className="w-full p-2 border rounded mb-2"
+        rows="2"
+      />
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        Submit
+      </button>
     </div>
   );
 };
