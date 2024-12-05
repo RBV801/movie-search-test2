@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import './styles/components.css';
@@ -12,11 +13,12 @@ import { analyzeSearchIntent } from './utils/searchAnalysis';
 import { getCachedData, setCachedData } from './utils/caching';
 import { getSearchHistory, addToSearchHistory, clearSearchHistory } from './utils/searchHistory';
 import { saveFeedback } from './utils/feedbackStorage';
+import debounce from './utils/debounce';
 
 function App() {
   // ...existing code...
 
-  const handleSearch = async (query = searchQuery, page = 1, retryCount = 0) => {
+  const handleSearch = debounce(async (query = searchQuery, page = 1, retryCount = 0) => {
     if (!query.trim()) return;
 
     setLoading(true);
@@ -87,7 +89,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, 500);
 
   // ...existing code...
 }
