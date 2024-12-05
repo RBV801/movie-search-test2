@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Mic } from 'lucide-react';
 import debounce from './utils/debounce';
 import { analyzeSearchIntent } from './utils/searchAnalysis';
 import { getCachedData, setCachedData } from './utils/caching';
@@ -6,8 +7,6 @@ import { getSearchHistory, addToSearchHistory } from './utils/searchHistory';
 import LoadingState from './components/LoadingState';
 import SearchResults from './components/SearchResults';
 import SearchHistory from './components/SearchHistory';
-import AiExplanationPanel from './components/AiExplanationPanel';
-import FeedbackWidget from './components/FeedbackWidget';
 import Pagination from './components/Pagination';
 
 function App() {
@@ -20,119 +19,129 @@ function App() {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [error, setError] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
-  const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
-  const handleSearch = debounce(async (query, page = 1, retryCount = 0) => {
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
+
+  const handleSearch = debounce(async (query, page = 1) => {
     if (!query.trim()) return;
     setLoading(true);
     setError(null);
-    setShowFeedbackWidget(false);
+
     if (page === 1) {
-      setResults([]); 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setResults([]);
       const analysis = analyzeSearchIntent(query);
       setAiAnalysis(analysis);
     }
-    const cacheKey = `${query}-${page}`;
-    const cachedData = getCachedData(cacheKey);
-    if (cachedData) {
-      const newResults = page === 1 ? cachedData.Search : [...results, ...cachedData.Search];
-      setResults(newResults);
-      setTotalResults(cachedData.totalResults);
-      setCurrentPage(page);
-      setHasMore(newResults.length < cachedData.totalResults);
-      if (page === 1) {
-        const newHistory = addToSearchHistory(query, cachedData.totalResults);
-        setSearchHistory(newHistory);
-      }
-      setLoading(false);
-      setShowFeedbackWidget(true);
-      return;
-    }
+
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${page}`
       );
       const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setCachedData(cacheKey, data);
-      let newResults;
-      if (page === 1) {
-        newResults = data.Search || [];
-        const newHistory = addToSearchHistory(query, data.totalResults);
-        setSearchHistory(newHistory);
-      } else {
-        newResults = [...results, ...(data.Search || [])];  
-      }
+      
+      if (data.Error) throw new Error(data.Error);
+      
+      const newResults = page === 1 ? data.Search : [...results, ...data.Search];
       setResults(newResults);
-      setTotalResults(data.totalResults);
+      setTotalResults(parseInt(data.totalResults) || 0);
       setCurrentPage(page);
       setHasMore(newResults.length < data.totalResults);
-      setShowFeedbackWidget(true);
-    } catch (err) {
-      console.error('Search error:', err);
-      if (retryCount < 3) {
-        const delay = Math.pow(2, retryCount) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return handleSearch(query, page, retryCount + 1);
+      
+      if (page === 1) {
+        addToSearchHistory(query, data.totalResults);
+        setSearchHistory(getSearchHistory());
       }
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }, 500);
 
+  const toggleVoiceSearch = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Voice search is not supported in your browser');
+      return;
+    }
+    setIsListening(!isListening);
+    // Voice recognition implementation
+  };
+
   return (
-    <div className="app-container p-4">
-      <div className="search-container mb-4">
-        <input
-          type="text"
-          placeholder="Search for movies..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            handleSearch(e.target.value);
-          }}
-          className="search-input w-full p-2 border rounded"
-        />
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-center mb-6">Movie Search</h1>
+          <div className="relative max-w-xl mx-auto">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                handleSearch(e.target.value);
+              }}
+              placeholder="Search for movies..."
+              className="w-full p-4 pr-12 rounded-lg border shadow-sm"
+            />
+            <button
+              onClick={toggleVoiceSearch}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full ${isListening ? 'bg-red-100' : 'hover:bg-gray-100'}`}
+            >
+              <Mic className={isListening ? 'text-red-500' : 'text-gray-500'} />
+            </button>
+          </div>
+        </header>
+
+        <main className="flex gap-6">
+          <div className="flex-grow">
+            {error && (
+              <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">{error}</div>
+            )}
+            
+            {loading ? (
+              <LoadingState />
+            ) : (
+              <>
+                <SearchResults results={results} />
+                {totalResults > 0 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalResults={totalResults}
+                    hasMore={hasMore}
+                    onPageChange={(page) => handleSearch(searchQuery, page)}
+                  />
+                )}
+              </>
+            )}
+          </div>
+
+          <aside className="w-80 shrink-0">
+            <SearchHistory
+              history={searchHistory}
+              onHistoryItemClick={(query) => {
+                setSearchQuery(query);
+                handleSearch(query);
+              }}
+            />
+            {aiAnalysis && (
+              <div className="bg-white rounded-lg shadow p-4 mt-4">
+                <h3 className="font-bold mb-2">AI Analysis</h3>
+                <div className="space-y-2">
+                  {aiAnalysis.matchFactors.map((factor, index) => (
+                    <div key={index} className="text-sm text-gray-600">{factor}</div>
+                  ))}
+                  <div className="text-xs text-purple-600 mt-2">
+                    Credits used: {aiAnalysis.aiUsage.creditsUsed}
+                  </div>
+                </div>
+              </div>
+            )}
+          </aside>
+        </main>
       </div>
-      
-      <div className="flex gap-4">
-        <div className="w-3/4">
-          {loading ? <LoadingState /> : (
-            <div>
-              <SearchResults results={results} error={error} />
-              <Pagination
-                currentPage={currentPage}
-                totalResults={totalResults}
-                hasMore={hasMore}
-                onPageChange={(page) => handleSearch(searchQuery, page)}
-              />
-            </div>
-          )}
-        </div>
-        
-        <div className="w-1/4">
-          <AiExplanationPanel analysis={aiAnalysis} />
-          <SearchHistory
-            history={searchHistory}
-            onHistoryItemClick={(query) => {
-              setSearchQuery(query);
-              handleSearch(query);
-            }}
-          />
-        </div>
-      </div>
-      
-      {showFeedbackWidget && (
-        <FeedbackWidget
-          onClose={() => setShowFeedbackWidget(false)}
-          onSubmit={(feedback) => {
-            console.log('Feedback submitted:', feedback);
-            setShowFeedbackWidget(false);
-          }}
-        />
-      )}
     </div>
   );
 }
