@@ -39,7 +39,7 @@ const SearchResults = () => {
         {searchResults.map((movie) => (
           <div key={movie.id} className="movie-card">
             <ImageWithFallback
-              src={`/api/poster/${movie.id}`}
+              src={`${process.env.REACT_APP_API_URL}/api/poster/${movie.id}`}
               alt={`${movie.title} poster`}
               className="movie-poster"
             />
