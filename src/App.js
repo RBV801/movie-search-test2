@@ -5,6 +5,9 @@ import { getCachedData, setCachedData } from './utils/caching';
 import { getSearchHistory, addToSearchHistory } from './utils/searchHistory';
 import LoadingState from './components/LoadingState';
 import SearchResults from './components/SearchResults';
+import SearchHistory from './components/SearchHistory';
+import AiExplanationPanel from './components/AiExplanationPanel';
+import FeedbackWidget from './components/FeedbackWidget';
 import Pagination from './components/Pagination';
 
 function App() {
@@ -43,6 +46,7 @@ function App() {
         setSearchHistory(newHistory);
       }
       setLoading(false);
+      setShowFeedbackWidget(true);
       return;
     }
     try {
@@ -64,6 +68,7 @@ function App() {
       setTotalResults(data.totalResults);
       setCurrentPage(page);
       setHasMore(newResults.length < data.totalResults);
+      setShowFeedbackWidget(true);
     } catch (err) {
       console.error('Search error:', err);
       if (retryCount < 3) {
@@ -78,8 +83,8 @@ function App() {
   }, 500);
 
   return (
-    <div className="app-container">
-      <div className="search-container">
+    <div className="app-container p-4">
+      <div className="search-container mb-4">
         <input
           type="text"
           placeholder="Search for movies..."
@@ -88,19 +93,45 @@ function App() {
             setSearchQuery(e.target.value);
             handleSearch(e.target.value);
           }}
-          className="search-input"
+          className="search-input w-full p-2 border rounded"
         />
       </div>
-      {loading ? <LoadingState /> : (
-        <div>
-          <SearchResults results={results} error={error} />
-          <Pagination
-            currentPage={currentPage}
-            totalResults={totalResults}
-            hasMore={hasMore}
-            onPageChange={(page) => handleSearch(searchQuery, page)}
+      
+      <div className="flex gap-4">
+        <div className="w-3/4">
+          {loading ? <LoadingState /> : (
+            <div>
+              <SearchResults results={results} error={error} />
+              <Pagination
+                currentPage={currentPage}
+                totalResults={totalResults}
+                hasMore={hasMore}
+                onPageChange={(page) => handleSearch(searchQuery, page)}
+              />
+            </div>
+          )}
+        </div>
+        
+        <div className="w-1/4">
+          <AiExplanationPanel analysis={aiAnalysis} />
+          <SearchHistory
+            history={searchHistory}
+            onHistoryItemClick={(query) => {
+              setSearchQuery(query);
+              handleSearch(query);
+            }}
           />
         </div>
+      </div>
+      
+      {showFeedbackWidget && (
+        <FeedbackWidget
+          onClose={() => setShowFeedbackWidget(false)}
+          onSubmit={(feedback) => {
+            console.log('Feedback submitted:', feedback);
+            setShowFeedbackWidget(false);
+          }}
+        />
       )}
     </div>
   );
