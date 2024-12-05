@@ -78,18 +78,31 @@ function App() {
   }, 500);
 
   return (
-    loading ? <LoadingState /> : (
-      <div>
-        <SearchResults results={results} error={error} />
-        <Pagination
-          currentPage={currentPage}
-          totalResults={totalResults}
-          hasMore={hasMore}
-          onPageChange={(page) => handleSearch(searchQuery, page)}
+    <div className="app-container">
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search for movies..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          className="search-input"
         />
-        {/* Other components */}
       </div>
-    )
+      {loading ? <LoadingState /> : (
+        <div>
+          <SearchResults results={results} error={error} />
+          <Pagination
+            currentPage={currentPage}
+            totalResults={totalResults}
+            hasMore={hasMore}
+            onPageChange={(page) => handleSearch(searchQuery, page)}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
