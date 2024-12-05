@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
- feature/search-improvements
+import './styles/components.css';
 import ImageWithFallback from './components/ImageWithFallback';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoadingState from './components/LoadingState';
+import SearchFeedback from './components/SearchFeedback';
+import SearchHistory from './components/SearchHistory';
+import FeedbackWidget from './components/FeedbackWidget';
+import AISearchExplanation from './components/AISearchExplanation';
+import { analyzeSearchIntent } from './utils/searchAnalysis';
 import { getCachedData, setCachedData } from './utils/caching';
- main
+import { getSearchHistory, addToSearchHistory, clearSearchHistory } from './utils/searchHistory';
+import { saveFeedback } from './utils/feedbackStorage';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +22,29 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState({
+    matchFactors: [],
+    aiUsage: { creditsUsed: 0, operations: [] }
+  });
+
+  // Load search history on component mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
+
+  // Show feedback widget after search completes
+  useEffect(() => {
+    if (!loading && results.length > 0) {
+      const timer = setTimeout(() => {
+        setShowFeedbackWidget(true);
+      }, 2000); // Show feedback widget 2 seconds after results load
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading, results.length]);
 
   // Initialize speech recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -51,27 +81,39 @@ function App() {
     setIsListening(!isListening);
   };
 
- feature/search-improvements
   const handleSearch = async (query = searchQuery, page = 1, retryCount = 0) => {
-main
     if (!query.trim()) return;
 
     setLoading(true);
     setError(null);
+    setShowFeedbackWidget(false);
 
-feature/search-improvements
+    if (page === 1) {
+      setResults([]); // Clear previous results when starting a new search
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top for new searches
+      
+      // Perform AI analysis on new searches
+      const analysis = analyzeSearchIntent(query);
+      setAiAnalysis(analysis);
+    }
+
     // Check cache first
     const cacheKey = `${query}-${page}`;
     const cachedData = getCachedData(cacheKey);
     if (cachedData) {
-      setResults(page === 1 ? cachedData.Search : [...results, ...cachedData.Search]);
+      const newResults = page === 1 ? cachedData.Search : [...results, ...cachedData.Search];
+      setResults(newResults);
       setTotalResults(cachedData.totalResults);
-      setCurrentPage(cachedData.currentPage);
-      setHasMore(cachedData.hasMore);
+      setCurrentPage(page);
+      setHasMore(newResults.length < cachedData.totalResults);
+      if (page === 1) {
+        const newHistory = addToSearchHistory(query, cachedData.totalResults);
+        setSearchHistory(newHistory);
+      }
       setLoading(false);
       return;
     }
- main
+
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${page}`
@@ -82,21 +124,23 @@ feature/search-improvements
         throw new Error(data.error);
       }
 
-feature/search-improvements
       // Cache the successful response
       setCachedData(cacheKey, data);
- main
+
+      let newResults;
       if (page === 1) {
-        setResults(data.Search || []);
+        newResults = data.Search || [];
+        const newHistory = addToSearchHistory(query, data.totalResults);
+        setSearchHistory(newHistory);
       } else {
-        setResults(prev => [...prev, ...(data.Search || [])]);
+        newResults = [...results, ...(data.Search || [])];
       }
 
+      setResults(newResults);
       setTotalResults(data.totalResults);
-      setCurrentPage(data.currentPage);
-      setHasMore(data.hasMore);
+      setCurrentPage(page);
+      setHasMore(newResults.length < data.totalResults);
     } catch (err) {
-feature/search-improvements
       console.error('Search error:', err);
       if (retryCount < 3) {
         // Retry with exponential backoff
@@ -104,8 +148,6 @@ feature/search-improvements
         await new Promise(resolve => setTimeout(resolve, delay));
         return handleSearch(query, page, retryCount + 1);
       }
-
-main
       setError(err.message);
     } finally {
       setLoading(false);
@@ -114,10 +156,30 @@ main
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setShowSubmitFeedback(true);
+    setTimeout(() => setShowSubmitFeedback(false), 2000);
     handleSearch(searchQuery, 1);
   };
 
+  const handleHistoryItemClick = (historyItem) => {
+    setSearchQuery(historyItem.query);
+    handleSearch(historyItem.query, 1);
+  };
+
+  const handleClearHistory = () => {
+    const clearedHistory = clearSearchHistory();
+    setSearchHistory(clearedHistory);
+  };
+
+  const handleFeedbackSubmit = (feedback) => {
+    saveFeedback(feedback);
+    setShowFeedbackWidget(false);
+  };
+
   const loadMore = () => {
+    if (loading || !hasMore) return;
     handleSearch(searchQuery, currentPage + 1);
   };
 
@@ -142,7 +204,6 @@ main
   };
 
   return (
-feature/search-improvements
     <ErrorBoundary>
       <div className="App">
         <header className="App-header">
@@ -163,7 +224,11 @@ feature/search-improvements
                 aria-label="Voice search"
                 title="Click to search with your voice"
               >
-                {isListening ? '🔴 Recording...' : '🎤'}
+                {isListening ? (
+                  <span role="img" aria-label="Recording">🔴 Recording...</span>
+                ) : (
+                  <span role="img" aria-label="Microphone">🎤</span>
+                )}
               </button>
               <button type="submit" className="search-button">
                 Search
@@ -174,17 +239,28 @@ feature/search-improvements
 
         <main className="App-main">
           {error && <div className="error-message">{error}</div>}
-          
-          {totalResults > 0 && (
-            <div className="results-count">
-              Found {totalResults} results
-            </div>
+
+          {!loading && searchHistory.length > 0 && (
+            <SearchHistory
+              history={searchHistory}
+              onHistoryItemClick={handleHistoryItemClick}
+              onClearHistory={handleClearHistory}
+            />
           )}
 
-          {results.length === 0 && !loading && !error && searchQuery && (
-            <div className="no-results">
-              No results found. Try adjusting your search terms.
-            </div>
+          {!loading && <SearchFeedback 
+            totalResults={totalResults}
+            currentPage={currentPage}
+            resultsPerPage={10}
+          />}
+
+          {!loading && totalResults > 0 && (
+            <AISearchExplanation
+              searchTerm={searchQuery}
+              resultCount={totalResults}
+              matchFactors={aiAnalysis.matchFactors}
+              aiUsage={aiAnalysis.aiUsage}
+            />
           )}
 
           <div className="results-grid">
@@ -192,10 +268,12 @@ feature/search-improvements
               <div key={`${movie.id || movie.imdbID}-${index}`} className="movie-card">
                 <div className="movie-poster">
                   <ImageWithFallback
-                    src={movie.tmdbData?.poster_path 
-                      ? `https://image.tmdb.org/t/p/w500${movie.tmdbData.poster_path}`
-                      : movie.poster}
-                    alt={movie.title}
+                    src={
+                      movie.tmdbData?.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.tmdbData.poster_path}`
+                        : (movie.poster || null)
+                    }
+                    alt={movie.title || 'Movie Poster'}
                     className="movie-poster-image"
                   />
                 </div>
@@ -206,7 +284,6 @@ feature/search-improvements
                     <div className="recommendation-score">
                       <span className="score-label">Recommendation Score:</span>
                       <span className="score-value">{movie.recommendationScore}</span>
- main
                     </div>
                   )}
                   {movie.tmdbData && (
@@ -241,23 +318,34 @@ feature/search-improvements
               </div>
             ))}
           </div>
-feature/search-improvements
+
+          {loading && <LoadingState />}
 
           {hasMore && !loading && results.length > 0 && (
-            <button onClick={loadMore} className="load-more-button">
-              Load More Results
+            <button 
+              onClick={loadMore} 
+              className="load-more-button"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Load More Results'}
             </button>
           )}
 
-          {loading && (
-            <div className="loading-spinner">
-              Loading...
+          {showSubmitFeedback && (
+            <div className="submit-feedback">
+              Search submitted!
             </div>
+          )}
+
+          {showFeedbackWidget && !loading && results.length > 0 && (
+            <FeedbackWidget
+              onSubmit={handleFeedbackSubmit}
+              searchQuery={searchQuery}
+            />
           )}
         </main>
       </div>
     </ErrorBoundary>
- main
   );
 }
 
